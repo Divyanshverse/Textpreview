@@ -1,0 +1,6 @@
+{
+  "name": "DocShowcase",
+  "description": "Share Documents Instantly. Write in Markdown or HTML with live preview.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
