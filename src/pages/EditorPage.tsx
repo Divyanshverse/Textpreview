@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { FileText, Share2, ChevronDown, Moon, Sun, Check, Settings as SettingsIcon, Copy, ExternalLink, Plus, Undo2, Redo2 } from 'lucide-react';
+import LZString from 'lz-string';
 import { store } from '../store';
 import { Document } from '../types';
 import { CodeEditor } from '../components/CodeEditor';
@@ -13,6 +14,7 @@ import { useHistory } from '../hooks/useHistory';
 export default function EditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { theme, setTheme } = useTheme();
   const [doc, setDoc] = useState<Document | null>(null);
   const [content, setContent] = useState('');
@@ -30,7 +32,31 @@ export default function EditorPage() {
 
   useEffect(() => {
     if (id) {
-      const found = store.getDocument(id);
+      const encodedData = searchParams.get('d');
+      let found = store.getDocument(id);
+
+      if (encodedData) {
+        try {
+          const decodedString = LZString.decompressFromEncodedURIComponent(encodedData);
+          if (decodedString) {
+            const parsedData = JSON.parse(decodedString);
+            if (found) {
+               store.updateDocument(id, parsedData);
+               found = store.getDocument(id);
+            } else {
+               const newDoc = { ...parsedData, id };
+               found = store.createDocument(newDoc);
+            }
+            // Clean up the URL so it's not massive in the address bar
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.searchParams.delete('d');
+            window.history.replaceState({}, '', cleanUrl.toString());
+          }
+        } catch (e) {
+          console.error("Failed to decode document from URL", e);
+        }
+      }
+
       if (found) {
         setDoc(found);
         setContent(found.content);
@@ -41,7 +67,7 @@ export default function EditorPage() {
         navigate('/');
       }
     }
-  }, [id, navigate]);
+  }, [id, navigate]); // Removed searchParams to prevent reload loop on share
 
   const handleContentChange = useCallback((newContent: string) => {
     setContent(newContent);
@@ -89,6 +115,17 @@ export default function EditorPage() {
   const handleShareClick = () => {
     if (id) {
       store.updateDocument(id, { content, title, format });
+      
+      const compressedData = LZString.compressToEncodedURIComponent(JSON.stringify({
+        title,
+        content,
+        format
+      }));
+      
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set('d', compressedData);
+      window.history.replaceState({}, '', newUrl.toString());
+      
       setShowSharePage(true);
     }
   };
@@ -179,7 +216,12 @@ export default function EditorPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <button 
-                onClick={() => setShowSharePage(false)}
+                onClick={() => {
+                  setShowSharePage(false);
+                  const cleanUrl = new URL(window.location.href);
+                  cleanUrl.searchParams.delete('d');
+                  window.history.replaceState({}, '', cleanUrl.toString());
+                }}
                 className="flex items-center justify-center gap-2 bg-transparent border border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 px-6 py-3.5 rounded-xl font-medium transition-all text-sm shadow-sm"
               >
                 <ExternalLink className="w-4 h-4" />

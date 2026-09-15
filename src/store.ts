@@ -18,11 +18,11 @@ export const store = {
     const docs = store.getDocuments();
     const now = Date.now();
     const newDoc: Document = {
-      id: uuidv4(),
+      id: initialData?.id || uuidv4(),
       title: initialData?.title || 'Untitled Document',
       content: initialData?.content || '',
       format: initialData?.format || 'markdown',
-      createdAt: now,
+      createdAt: initialData?.createdAt || now,
       updatedAt: now,
       lastViewedAt: now,
     };
