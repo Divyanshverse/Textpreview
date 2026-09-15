@@ -37,7 +37,7 @@ export default function EditorPage() {
 
       if (encodedData) {
         try {
-          const decodedString = LZString.decompressFromEncodedURIComponent(encodedData);
+          const decodedString = LZString.decompressFromBase64(encodedData);
           if (decodedString) {
             const parsedData = JSON.parse(decodedString);
             if (found) {
@@ -116,7 +116,7 @@ export default function EditorPage() {
     if (id) {
       store.updateDocument(id, { content, title, format });
       
-      const compressedData = LZString.compressToEncodedURIComponent(JSON.stringify({
+      const compressedData = LZString.compressToBase64(JSON.stringify({
         title,
         content,
         format
