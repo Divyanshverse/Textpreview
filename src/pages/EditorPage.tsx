@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { FileText, Share2, ChevronDown, Moon, Sun, Check, Settings as SettingsIcon, Copy, ExternalLink, Plus, Undo2, Redo2 } from 'lucide-react';
-import LZString from 'lz-string';
+import { QRCodeCanvas } from 'qrcode.react';
 import { store } from '../store';
 import { Document } from '../types';
 import { CodeEditor } from '../components/CodeEditor';
@@ -14,7 +14,6 @@ import { useHistory } from '../hooks/useHistory';
 export default function EditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { theme, setTheme } = useTheme();
   const [doc, setDoc] = useState<Document | null>(null);
   const [content, setContent] = useState('');
@@ -27,47 +26,30 @@ export default function EditorPage() {
   const [showSettings, setShowSettings] = useState(false);
   const [showSharePage, setShowSharePage] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [shortUrl, setShortUrl] = useState('');
+  
+  const [isPasswordProtected, setIsPasswordProtected] = useState(false);
+  const [password, setPassword] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
 
   const { pushSnapshot, undo, redo, canUndo, canRedo } = useHistory(id, content);
 
   useEffect(() => {
     if (id) {
-      const encodedData = searchParams.get('d');
       let found = store.getDocument(id);
-
-      if (encodedData) {
-        try {
-          const decodedString = LZString.decompressFromBase64(encodedData);
-          if (decodedString) {
-            const parsedData = JSON.parse(decodedString);
-            if (found) {
-               store.updateDocument(id, parsedData);
-               found = store.getDocument(id);
-            } else {
-               const newDoc = { ...parsedData, id };
-               found = store.createDocument(newDoc);
-            }
-            // Clean up the URL so it's not massive in the address bar
-            const cleanUrl = new URL(window.location.href);
-            cleanUrl.searchParams.delete('d');
-            window.history.replaceState({}, '', cleanUrl.toString());
-          }
-        } catch (e) {
-          console.error("Failed to decode document from URL", e);
-        }
-      }
 
       if (found) {
         setDoc(found);
         setContent(found.content);
         setTitle(found.title);
         setFormat(found.format);
+        setIsPasswordProtected(found.isPasswordProtected || false);
         store.markViewed(id);
       } else {
         navigate('/');
       }
     }
-  }, [id, navigate]); // Removed searchParams to prevent reload loop on share
+  }, [id, navigate]);
 
   const handleContentChange = useCallback((newContent: string) => {
     setContent(newContent);
@@ -112,26 +94,42 @@ export default function EditorPage() {
     }
   };
 
-  const handleShareClick = () => {
+  const handleShareClick = async () => {
     if (id) {
-      store.updateDocument(id, { content, title, format });
+      let passwordHash = undefined;
+      let expiresAt = null;
+
+      if (isPasswordProtected && password) {
+         const encoder = new TextEncoder();
+         const data = encoder.encode(password);
+         const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+         const hashArray = Array.from(new Uint8Array(hashBuffer));
+         passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+
+      if (expiryDate) {
+         const date = new Date(expiryDate);
+         date.setHours(23, 59, 59, 999);
+         expiresAt = date.getTime();
+      }
+
+      store.updateDocument(id, { 
+        content, 
+        title, 
+        format, 
+        isPasswordProtected, 
+        passwordHash, 
+        expiresAt 
+      });
       
-      const compressedData = LZString.compressToBase64(JSON.stringify({
-        title,
-        content,
-        format
-      }));
-      
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.set('d', compressedData);
-      window.history.replaceState({}, '', newUrl.toString());
-      
+      const fullUrl = `${window.location.origin}/view/${id}`;
+      setShortUrl(fullUrl);
       setShowSharePage(true);
     }
   };
 
   const handleCopyUrl = () => {
-    navigator.clipboard.writeText(window.location.href)
+    navigator.clipboard.writeText(shortUrl || window.location.href)
       .then(() => {
          setIsCopied(true);
          setTimeout(() => setIsCopied(false), 2000);
@@ -187,14 +185,24 @@ export default function EditorPage() {
             <Check className="w-8 h-8 text-emerald-600 dark:text-emerald-500" />
           </div>
           <h1 className="text-3xl font-bold mb-2 text-slate-900 dark:text-white tracking-tight">Document Saved!</h1>
-          <p className="text-slate-500 dark:text-slate-400 mb-10 font-medium">Your document is ready to share</p>
+          <p className="text-slate-500 dark:text-slate-400 mb-8 font-medium">Your document is ready to share</p>
 
           <div className="w-full max-w-xl space-y-4">
-            <div className="bg-[#f5f7fa] dark:bg-[#15171b] border border-slate-200 dark:border-slate-800/60 rounded-xl p-5 text-center shadow-sm">
-              <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-2">Public URL</p>
-              <code className="text-sm font-mono text-slate-800 dark:text-slate-200 break-all bg-white/50 dark:bg-[#0a0c10]/50 px-3 py-1.5 rounded-lg block">
-                {window.location.href}
-              </code>
+            <div className="bg-[#f5f7fa] dark:bg-[#15171b] border border-slate-200 dark:border-slate-800/60 rounded-xl p-5 shadow-sm flex flex-col items-center">
+              <div className="bg-white p-3 rounded-xl mb-4 shadow-sm border border-slate-100">
+                <QRCodeCanvas 
+                  value={shortUrl || window.location.href} 
+                  size={140}
+                  level="L"
+                  includeMargin={false}
+                />
+              </div>
+              <div className="w-full text-center">
+                <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-2">Public URL</p>
+                <code className="text-sm font-mono text-slate-800 dark:text-slate-200 break-all bg-white/50 dark:bg-[#0a0c10]/50 px-3 py-1.5 rounded-lg block">
+                  {shortUrl || window.location.href}
+                </code>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -206,7 +214,16 @@ export default function EditorPage() {
                 {isCopied ? 'Copied' : 'Copy URL'}
               </button>
               <button 
-                onClick={handleCopyUrl}
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: title || 'Shared Document',
+                      url: shortUrl || window.location.href
+                    }).catch(() => {});
+                  } else {
+                    handleCopyUrl();
+                  }
+                }}
                 className="flex items-center justify-center gap-2 bg-transparent border border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 px-6 py-3.5 rounded-xl font-medium transition-all text-sm shadow-sm"
               >
                 <Share2 className="w-4 h-4" />
@@ -217,26 +234,19 @@ export default function EditorPage() {
             <div className="grid grid-cols-2 gap-4">
               <button 
                 onClick={() => {
-                  setShowSharePage(false);
-                  const cleanUrl = new URL(window.location.href);
-                  cleanUrl.searchParams.delete('d');
-                  window.history.replaceState({}, '', cleanUrl.toString());
+                  window.open(shortUrl || window.location.href, '_blank');
                 }}
                 className="flex items-center justify-center gap-2 bg-transparent border border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 px-6 py-3.5 rounded-xl font-medium transition-all text-sm shadow-sm"
               >
                 <ExternalLink className="w-4 h-4" />
-                Open
+                Open in New Tab
               </button>
               <button 
-                onClick={() => {
-                  const newDoc = store.createDocument();
-                  navigate(`/doc/${newDoc.id}`);
-                  setShowSharePage(false);
-                }}
+                onClick={() => setShowSharePage(false)}
                 className="flex items-center justify-center gap-2 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-500/20 dark:hover:bg-indigo-500/30 text-indigo-700 dark:text-indigo-300 px-6 py-3.5 rounded-xl font-medium transition-all shadow-sm text-sm"
               >
-                <Plus className="w-4 h-4" />
-                New Doc
+                <Undo2 className="w-4 h-4" />
+                Return to Editor
               </button>
             </div>
             
@@ -251,13 +261,34 @@ export default function EditorPage() {
               {showAdvanced && (
                 <div className="px-5 py-4 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-black/20 text-sm">
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-600 dark:text-slate-300 font-medium">Require Password to View</span>
-                      <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600 dark:text-slate-300 font-medium">Require Password to View</span>
+                        <input 
+                          type="checkbox" 
+                          checked={isPasswordProtected}
+                          onChange={(e) => setIsPasswordProtected(e.target.checked)}
+                          className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" 
+                        />
+                      </div>
+                      {isPasswordProtected && (
+                        <input 
+                          type="password"
+                          placeholder="Enter a secure password..."
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-700 dark:text-slate-300 outline-none focus:border-brand-500 w-full mt-1"
+                        />
+                      )}
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-600 dark:text-slate-300 font-medium">Link Expiry Date</span>
-                      <input type="date" className="bg-transparent border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-slate-700 dark:text-slate-300 outline-none" />
+                      <input 
+                        type="date" 
+                        value={expiryDate}
+                        onChange={(e) => setExpiryDate(e.target.value)}
+                        className="bg-transparent border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-slate-700 dark:text-slate-300 outline-none" 
+                      />
                     </div>
                   </div>
                 </div>

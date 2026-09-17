@@ -6,4 +6,7 @@ export interface Document {
   createdAt: number;
   updatedAt: number;
   lastViewedAt: number;
+  isPasswordProtected?: boolean;
+  passwordHash?: string;
+  expiresAt?: number | null;
 }

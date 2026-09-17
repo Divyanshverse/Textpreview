@@ -1,7 +1,10 @@
 import { Document } from './types';
-import { v4 as uuidv4 } from 'uuid';
 
 const STORAGE_KEY = 'docshowcase_documents';
+
+const generateShortId = () => {
+  return Math.random().toString(36).substring(2, 10);
+};
 
 export const store = {
   getDocuments: (): Document[] => {
@@ -18,7 +21,7 @@ export const store = {
     const docs = store.getDocuments();
     const now = Date.now();
     const newDoc: Document = {
-      id: initialData?.id || uuidv4(),
+      id: initialData?.id || generateShortId(),
       title: initialData?.title || 'Untitled Document',
       content: initialData?.content || '',
       format: initialData?.format || 'markdown',

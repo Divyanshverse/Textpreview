@@ -62,7 +62,9 @@ export function CodeEditor({ value, onChange, settings, language, className }: C
           onScroll={handleScroll}
           onKeyDown={handleKeyDown}
           spellCheck={false}
-          className="flex-1 bg-transparent resize-none outline-none p-4 leading-6 whitespace-pre text-slate-800 dark:text-slate-300 focus:outline-none focus:ring-0"
+          className={cn("flex-1 bg-transparent resize-none outline-none p-4 leading-6 text-slate-800 dark:text-slate-300 focus:outline-none focus:ring-0",
+             settings.wordWrap !== 'Off' ? "whitespace-pre-wrap break-words" : "whitespace-pre"
+          )}
           style={{ tabSize: 2, fontSize: parseInt(settings.fontSize) || 14 }}
         />
       </div>
