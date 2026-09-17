@@ -8,38 +8,25 @@ import { Preview } from '../components/Preview';
 export default function ViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [doc, setDoc] = useState<Document | null>(null);
-  const [status, setStatus] = useState<'loading' | 'not-found' | 'expired' | 'locked' | 'ready'>('loading');
+  
+  const [documentData, setDocumentData] = useState<Document | null>(null);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
   useEffect(() => {
     if (id) {
       const found = store.getDocument(id);
-      if (!found) {
-        setStatus('not-found');
-        return;
-      }
-
-      if (found.expiresAt && Date.now() > found.expiresAt) {
-        setStatus('expired');
-        return;
-      }
-
-      setDoc(found);
-      
-      if (found.isPasswordProtected) {
-        setStatus('locked');
-      } else {
-        setStatus('ready');
-        store.markViewed(id);
-      }
+      setDocumentData(found || null);
+      setIsLoading(false);
     }
   }, [id]);
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!doc || !doc.passwordHash) return;
+    if (!documentData) return;
 
     try {
       const encoder = new TextEncoder();
@@ -48,22 +35,24 @@ export default function ViewPage() {
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-      if (hashHex === doc.passwordHash) {
-        setStatus('ready');
+      // If document is protected but somehow missing a hash, let it unlock
+      if (!documentData.passwordHash || hashHex === documentData.passwordHash) {
+        setIsUnlocked(true);
         if (id) store.markViewed(id);
       } else {
-        setPasswordError('Incorrect password');
+        setPasswordError('Incorrect password. Please try again.');
       }
     } catch (err) {
-      setPasswordError('An error occurred while verifying the password');
+      setPasswordError('An error occurred while verifying the password.');
     }
   };
 
-  if (status === 'loading') {
+  if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950">Loading...</div>;
   }
 
-  if (status === 'not-found') {
+  // Execution State Logic for /view/[id]
+  if (!documentData) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-slate-950 text-slate-900 dark:text-white">
         <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
@@ -74,7 +63,7 @@ export default function ViewPage() {
     );
   }
 
-  if (status === 'expired') {
+  if (documentData.expiresAt && Date.now() > documentData.expiresAt) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-slate-950 text-slate-900 dark:text-white">
         <Clock className="w-16 h-16 text-amber-500 mb-4" />
@@ -85,7 +74,7 @@ export default function ViewPage() {
     );
   }
 
-  if (status === 'locked') {
+  if (documentData.isPasswordProtected && !isUnlocked) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#f5f7fa] dark:bg-[#0f1115]">
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 w-full max-w-md shadow-xl">
@@ -118,6 +107,13 @@ export default function ViewPage() {
     );
   }
 
+  // Render document ONLY when unlocked or unprotected
+  useEffect(() => {
+    if (documentData && !documentData.isPasswordProtected && id) {
+      store.markViewed(id);
+    }
+  }, [documentData, id]);
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0a0c10]">
       <header className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f1115] shrink-0 sticky top-0 z-10">
@@ -128,7 +124,7 @@ export default function ViewPage() {
           <span className="tracking-tight">DocShowcase</span>
         </div>
         <div className="font-medium text-slate-800 dark:text-slate-200 truncate px-4">
-          {doc?.title || 'Untitled Document'}
+          {documentData.title || 'Untitled Document'}
         </div>
         <button 
           onClick={() => navigate('/')} 
@@ -139,7 +135,7 @@ export default function ViewPage() {
       </header>
       <main className="flex-1 overflow-y-auto w-full flex justify-center">
         <div className="w-full max-w-4xl min-h-full bg-white dark:bg-[#0f1115] border-x border-slate-200 dark:border-slate-800 shadow-sm">
-          <Preview content={doc?.content || ''} format={doc?.format || 'markdown'} />
+          <Preview content={documentData.content || ''} format={documentData.format || 'markdown'} />
         </div>
       </main>
     </div>

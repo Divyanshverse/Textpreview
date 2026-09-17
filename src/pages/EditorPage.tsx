@@ -32,6 +32,9 @@ export default function EditorPage() {
   const [password, setPassword] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
 
+  const [securityApplyStatus, setSecurityApplyStatus] = useState<'idle' | 'success'>('idle');
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
+
   const { pushSnapshot, undo, redo, canUndo, canRedo } = useHistory(id, content);
 
   useEffect(() => {
@@ -51,12 +54,15 @@ export default function EditorPage() {
     }
   }, [id, navigate]);
 
-  const handleContentChange = useCallback((newContent: string) => {
-    setContent(newContent);
-    if (id) {
-      store.updateDocument(id, { content: newContent });
-    }
-  }, [id]);
+  // Debounced auto-save
+  useEffect(() => {
+    if (!id || saveStatus === 'saved') return;
+    const timeout = setTimeout(() => {
+      store.updateDocument(id, { content, title, format });
+      setSaveStatus('saved');
+    }, 1000);
+    return () => clearTimeout(timeout);
+  }, [content, title, format, id, saveStatus]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -65,24 +71,27 @@ export default function EditorPage() {
     return () => clearTimeout(timeout);
   }, [content, pushSnapshot]);
 
+  const handleContentChange = useCallback((newContent: string) => {
+    setContent(newContent);
+    setSaveStatus('saving');
+  }, []);
+
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle);
-    if (id) {
-      store.updateDocument(id, { title: newTitle });
-    }
+    setSaveStatus('saving');
   };
 
   const handleFormatChange = (newFormat: 'markdown' | 'html' | 'custom') => {
     setFormat(newFormat);
     setShowFormatDropdown(false);
-    if (id) store.updateDocument(id, { format: newFormat });
+    setSaveStatus('saving');
   };
 
   const handleUndo = () => {
     const restored = undo();
     if (restored !== null) {
       setContent(restored);
-      if (id) store.updateDocument(id, { content: restored });
+      setSaveStatus('saving');
     }
   };
 
@@ -90,7 +99,37 @@ export default function EditorPage() {
     const restored = redo();
     if (restored !== null) {
       setContent(restored);
-      if (id) store.updateDocument(id, { content: restored });
+      setSaveStatus('saving');
+    }
+  };
+
+  const handleApplySecurity = async () => {
+    if (id) {
+      let passwordHash = undefined;
+      let expiresAt = null;
+
+      if (isPasswordProtected && password) {
+         const encoder = new TextEncoder();
+         const data = encoder.encode(password);
+         const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+         const hashArray = Array.from(new Uint8Array(hashBuffer));
+         passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+
+      if (expiryDate) {
+         const date = new Date(expiryDate);
+         date.setHours(23, 59, 59, 999);
+         expiresAt = date.getTime();
+      }
+
+      store.updateDocument(id, { 
+        isPasswordProtected: isPasswordProtected && !!password, 
+        passwordHash, 
+        expiresAt 
+      });
+
+      setSecurityApplyStatus('success');
+      setTimeout(() => setSecurityApplyStatus('idle'), 3000);
     }
   };
 
@@ -290,6 +329,19 @@ export default function EditorPage() {
                         className="bg-transparent border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-slate-700 dark:text-slate-300 outline-none" 
                       />
                     </div>
+                    <button
+                      onClick={handleApplySecurity}
+                      className="w-full bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-medium py-2 rounded-lg transition-colors mt-4 flex items-center justify-center gap-2"
+                    >
+                      {securityApplyStatus === 'success' ? (
+                        <>
+                          <Check className="w-4 h-4 text-emerald-400" />
+                          <span>Settings Applied!</span>
+                        </>
+                      ) : (
+                        'Apply Security Settings'
+                      )}
+                    </button>
                   </div>
                 </div>
               )}
@@ -431,8 +483,8 @@ export default function EditorPage() {
           <span>{charCount} characters</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          Auto-saved locally
+          <span className={`w-2 h-2 rounded-full ${saveStatus === 'saving' ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}></span>
+          <span>{saveStatus === 'saving' ? 'Saving...' : 'Auto-saved locally'}</span>
         </div>
       </footer>
 
