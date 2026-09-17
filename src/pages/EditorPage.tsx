@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FileText, Share2, ChevronDown, Moon, Sun, Check, Settings as SettingsIcon, Copy, ExternalLink, Plus, Undo2, Redo2 } from 'lucide-react';
+import LZString from 'lz-string';
 import { QRCodeCanvas } from 'qrcode.react';
 import { store } from '../store';
 import { Document } from '../types';
@@ -152,16 +153,20 @@ export default function EditorPage() {
          expiresAt = date.getTime();
       }
 
-      store.updateDocument(id, { 
+      const docData = { 
         content, 
         title, 
         format, 
-        isPasswordProtected, 
+        isPasswordProtected: isPasswordProtected && !!password, 
         passwordHash, 
         expiresAt 
-      });
+      };
       
-      const fullUrl = `${window.location.origin}/view/${id}`;
+      store.updateDocument(id, docData);
+      
+      const payloadString = JSON.stringify(docData);
+      const encodedPayload = LZString.compressToEncodedURIComponent(payloadString);
+      const fullUrl = `${window.location.origin}/view/${id}#payload=${encodedPayload}`;
       setShortUrl(fullUrl);
       setShowSharePage(true);
     }

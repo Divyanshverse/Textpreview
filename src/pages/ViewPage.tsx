@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Lock, Clock, FileText, AlertCircle } from 'lucide-react';
+import LZString from 'lz-string';
 import { store } from '../store';
 import { Document } from '../types';
 import { Preview } from '../components/Preview';
@@ -18,7 +19,25 @@ export default function ViewPage() {
 
   useEffect(() => {
     if (id) {
-      const found = store.getDocument(id);
+      let found = store.getDocument(id);
+      
+      if (!found && window.location.hash.startsWith('#payload=')) {
+        try {
+          const encodedPayload = window.location.hash.substring(9);
+          const decodedPayload = LZString.decompressFromEncodedURIComponent(encodedPayload);
+          if (decodedPayload) {
+            found = JSON.parse(decodedPayload);
+            // Optional: Store the shared document locally so they can find it later
+            if (found) {
+               // Make sure it has an ID, since docData from payload might not include ID if it wasn't saved with it
+               found = { ...found, id };
+            }
+          }
+        } catch (err) {
+          console.error("Failed to decode payload from URL hash", err);
+        }
+      }
+
       setDocumentData(found || null);
       setIsLoading(false);
     }
