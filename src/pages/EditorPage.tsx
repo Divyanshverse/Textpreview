@@ -354,9 +354,9 @@ export default function EditorPage() {
         <footer className="py-6 border-t border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between px-8 bg-[#f5f7fa]/80 dark:bg-[#0f1115]/80 text-sm font-medium text-slate-500 dark:text-slate-400">
           <div className="flex items-center gap-2 text-slate-400">
             <FileText className="w-4 h-4" />
-            DocShowcase
+            Text Preview
           </div>
-          <div>Built by <span className="text-slate-900 dark:text-white font-semibold">AryansDevStudios</span></div>
+          <div>Built by <span className="text-slate-900 dark:text-white font-semibold">divyanshverse</span></div>
         </footer>
 
         <SettingsModal 
@@ -384,7 +384,7 @@ export default function EditorPage() {
             <div className="bg-brand-500 text-white p-1 rounded-md">
               <FileText className="w-4 h-4" />
             </div>
-            <span className="hidden sm:inline tracking-tight">DocShowcase</span>
+            <span className="hidden sm:inline tracking-tight">Text Preview</span>
           </div>
           
           <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 hidden sm:block"></div>

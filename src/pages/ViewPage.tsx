@@ -149,7 +149,7 @@ export default function ViewPage() {
           <div className="bg-indigo-600 text-white p-1.5 rounded-md">
             <FileText className="w-4 h-4" />
           </div>
-          <span className="tracking-tight font-medium">DocShowcase</span>
+          <span className="tracking-tight font-medium">Text Preview</span>
         </div>
         <div className="font-semibold text-slate-800 dark:text-slate-200 truncate px-4">
           {documentData.title || 'Shared Document'}

@@ -2,7 +2,7 @@
 
 # ⚡ Text Preview
 
-### *Instant, Frictionless Document Publishing & Sharing*
+### *Instant, Frictionless Document & Markdown Preview Platform*
 **Architected & Engineered under the 🌌 [divyanshverse](https://github.com/divyanshverse) ecosystem**
 
 [![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
@@ -15,7 +15,7 @@
 
 <br/>
 
-> **DocShowcase** is a blazingly fast, privacy-focused document publishing engine. Write rich Markdown or HTML in a Monaco-powered dual-pane editor, render complex LaTeX mathematics in real time, protect sensitive notes with client-side SHA-256 hashes, and share documents globally in one click — **no sign-up, no clutter, zero barrier to entry.**
+> **Text Preview** is a blazingly fast, privacy-focused document & text publishing engine. Write rich Markdown or HTML in a Monaco-powered dual-pane editor, render complex LaTeX mathematics in real time, protect sensitive notes with client-side SHA-256 hashes, and share documents globally in one click — **no sign-up, no clutter, zero barrier to entry.**
 
 [Explore Features](#-key-features) • [Quick Start](#-quick-start) • [Architecture](#-architecture--tech-stack) • [Security](#-security--cryptography) • [API Reference](#-api-endpoints)
 
@@ -25,9 +25,9 @@
 
 ## 🌌 Built Under divyanshverse
 
-**DocShowcase** was conceived, styled, and engineered under **divyanshverse** — a forward-thinking creative laboratory dedicated to crafting fluid, developer-first tools, high-performance web applications, and aesthetic digital experiences.
+**Text Preview** was conceived, styled, and engineered under **divyanshverse** — a forward-thinking creative laboratory dedicated to crafting fluid, developer-first tools, high-performance web applications, and aesthetic digital experiences.
 
-Every component in DocShowcase adheres to the core philosophy of **divyanshverse**:
+Every component in Text Preview adheres to the core philosophy of **divyanshverse**:
 - **Speed First**: Sub-second interactions, zero friction, and instantaneous share links.
 - **Craftsmanship**: Tasteful neomorphic and glassmorphic micro-details with native dark & light modes.
 - **Privacy by Design**: Decentralized access models, zero-account publishing, and optional cryptographic locks.
@@ -37,7 +37,7 @@ Every component in DocShowcase adheres to the core philosophy of **divyanshverse
 ## ⚡ Key Features
 
 ### 📝 Dual-Pane Pro Monaco Editor
-- **Interactive Split View**: Live bidirectional synchronization between editor and rendered output.
+- **Interactive Split View**: Live bidirectional synchronization between editor and rendered preview.
 - **Multi-Format Support**: Switch seamlessly between **GitHub Flavored Markdown (GFM)**, raw **HTML**, and rich text layouts.
 - **Real-time LaTeX & KaTeX**: First-class support for mathematical expressions, formulas, matrices, and scientific notation:
   $$\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}$$
@@ -63,7 +63,7 @@ Every component in DocShowcase adheres to the core philosophy of **divyanshverse
 
 ## 🏗 Architecture & Tech Stack
 
-DocShowcase is built as a hybrid high-performance React application powered by a custom Express + Vite server:
+Text Preview is built as a hybrid high-performance React application powered by a custom Express + Vite server:
 
 ```
                       ┌──────────────────────────────────────────────┐
@@ -109,12 +109,12 @@ DocShowcase is built as a hybrid high-performance React application powered by a
 ## 📁 Repository Structure
 
 ```
-DocShowcase/
+TextPreview/
 ├── package.json               # Project manifest, dependencies & scripts
 ├── tsconfig.json              # TypeScript compilation specifications
 ├── vite.config.ts             # Vite configuration with Tailwind plugin
 ├── server.ts                  # Express server + Vite middleware + OpenGraph injector
-├── metadata.json              # Applet metadata, capabilities & identifiers
+├── metadata.json              # Applet metadata & capabilities
 ├── index.html                 # HTML shell with Google Fonts & KaTeX stylesheets
 ├── public/                    # Static assets & icons
 └── src/
@@ -149,8 +149,8 @@ DocShowcase/
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/divyanshverse/DocShowcase.git
-cd DocShowcase
+git clone https://github.com/divyanshverse/TextPreview.git
+cd TextPreview
 npm install
 ```
 
@@ -184,7 +184,7 @@ npm start
 
 ## 🔒 Security & Cryptography
 
-DocShowcase takes document integrity and privacy seriously:
+Text Preview takes document integrity and privacy seriously:
 1. **Zero-Knowledge Password Verification**: When a user locks a document with a password, the raw password is never sent across the wire. Instead, a **SHA-256** hash digest is computed in the browser using the Web Cryptography API (`crypto.subtle.digest`) and verified against the stored hash.
 2. **Edit Passkey Isolation**: Authors can generate a unique modification passkey. Even if someone discovers the public document URL, editing permissions require the cryptographic passkey.
 3. **HTML Sanitization**: Custom HTML embeds are rendered inside isolated containers to prevent cross-site scripting (XSS) vectors.

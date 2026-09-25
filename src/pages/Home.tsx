@@ -32,7 +32,7 @@ export default function Home() {
           <div className="bg-brand-500 text-white p-1.5 rounded-xl shadow-md">
             <FileText className="w-5 h-5" />
           </div>
-          <span>DocShowcase</span>
+          <span>Text Preview</span>
         </div>
         <div className="flex items-center gap-4">
           <button 
