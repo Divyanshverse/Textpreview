@@ -24,10 +24,12 @@ export const store = {
       id: initialData?.id || generateShortId(),
       title: initialData?.title || 'Untitled Document',
       content: initialData?.content || '',
+      type: initialData?.type || (initialData?.format === 'html' ? 'html' : 'markdown'),
       format: initialData?.format || 'markdown',
       createdAt: initialData?.createdAt || now,
       updatedAt: now,
       lastViewedAt: now,
+      views: initialData?.views || 0,
     };
     docs.push(newDoc);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(docs));

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FileText, Share2, ChevronDown, Moon, Sun, Check, Settings as SettingsIcon, Copy, ExternalLink, Plus, Undo2, Redo2 } from 'lucide-react';
-import LZString from 'lz-string';
 import { QRCodeCanvas } from 'qrcode.react';
 import { store } from '../store';
 import { Document } from '../types';
@@ -164,9 +163,7 @@ export default function EditorPage() {
       
       store.updateDocument(id, docData);
       
-      const payloadString = JSON.stringify(docData);
-      const encodedPayload = LZString.compressToEncodedURIComponent(payloadString);
-      const fullUrl = `${window.location.origin}/view/${id}#payload=${encodedPayload}`;
+      const fullUrl = `${window.location.origin}/view/${id}`;
       setShortUrl(fullUrl);
       setShowSharePage(true);
     }
@@ -376,9 +373,9 @@ export default function EditorPage() {
   const charCount = content.length;
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-slate-950 transition-colors duration-200 overflow-hidden">
+    <div className="h-screen flex flex-col transition-colors duration-200 overflow-hidden bg-slate-950">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-2 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 shrink-0">
+      <header className="flex items-center justify-between px-4 py-2 border-b border-slate-800 bg-slate-950 shrink-0">
         <div className="flex items-center gap-4 flex-1">
           <div 
             className="flex items-center gap-2 text-slate-900 dark:text-white font-semibold cursor-pointer hover:opacity-80 transition-opacity"
@@ -397,16 +394,16 @@ export default function EditorPage() {
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
             placeholder="Untitled Document"
-            className="bg-transparent border-none px-2 py-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/50 rounded-md text-slate-800 dark:text-slate-200 w-64 max-w-full placeholder:text-slate-400 dark:placeholder:text-slate-600 transition-shadow"
+            className="bg-transparent border-none px-2 py-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/50 rounded-md text-slate-200 w-64 max-w-full placeholder:text-slate-600 transition-shadow"
           />
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="flex items-center mr-2 border-r border-slate-200 dark:border-slate-800 pr-3">
+          <div className="flex items-center mr-2 border-r border-slate-800 pr-3">
             <button
               onClick={handleUndo}
               disabled={!canUndo}
-              className={`p-1.5 rounded-lg transition-colors ${canUndo ? 'text-slate-700 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-800' : 'text-slate-300 dark:text-slate-700 cursor-not-allowed'}`}
+              className={`p-1.5 rounded-lg transition-colors ${canUndo ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-700 cursor-not-allowed'}`}
               aria-label="Undo"
             >
               <Undo2 className="w-4 h-4" />
@@ -414,7 +411,7 @@ export default function EditorPage() {
             <button
               onClick={handleRedo}
               disabled={!canRedo}
-              className={`p-1.5 rounded-lg transition-colors ${canRedo ? 'text-slate-700 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-800' : 'text-slate-300 dark:text-slate-700 cursor-not-allowed'}`}
+              className={`p-1.5 rounded-lg transition-colors ${canRedo ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-700 cursor-not-allowed'}`}
               aria-label="Redo"
             >
               <Redo2 className="w-4 h-4" />
@@ -423,7 +420,7 @@ export default function EditorPage() {
 
           <button
             onClick={() => setShowSettings(true)}
-            className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-500 dark:text-slate-400"
+            className="p-1.5 hover:bg-slate-800 rounded-lg transition-colors text-slate-400"
             aria-label="Editor Settings"
           >
             <SettingsIcon className="w-4 h-4" />
@@ -432,31 +429,23 @@ export default function EditorPage() {
           <div className="relative">
             <button 
               onClick={() => setShowFormatDropdown(!showFormatDropdown)}
-              className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
+              className="flex items-center gap-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
             >
               {format === 'markdown' ? 'Markdown' : format === 'html' ? 'HTML' : 'Custom'}
               <ChevronDown className="w-4 h-4 text-slate-400" />
             </button>
             {showFormatDropdown && (
-              <div className="absolute top-full right-0 mt-1 w-36 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-50 py-1 overflow-hidden">
-                <button onClick={() => handleFormatChange('markdown')} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium">Markdown</button>
-                <button onClick={() => handleFormatChange('html')} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium">HTML</button>
-                <button onClick={() => handleFormatChange('custom')} className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium">Custom Format</button>
+              <div className="absolute top-full right-0 mt-1 w-36 bg-slate-900 border border-slate-800 rounded-lg shadow-xl z-50 py-1 overflow-hidden">
+                <button onClick={() => handleFormatChange('markdown')} className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 font-medium">Markdown</button>
+                <button onClick={() => handleFormatChange('html')} className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 font-medium">HTML</button>
+                <button onClick={() => handleFormatChange('custom')} className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 font-medium">Custom Format</button>
               </div>
             )}
           </div>
           
           <button 
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-500 dark:text-slate-400"
-            aria-label="Toggle theme"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-
-          <button 
             onClick={handleShareClick}
-            className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-all shadow-sm hover:-translate-y-0.5"
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-all shadow-sm hover:-translate-y-0.5"
           >
             <Share2 className="w-4 h-4" />
             <span className="hidden sm:inline">Save & Share</span>
@@ -466,7 +455,7 @@ export default function EditorPage() {
 
       <main className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
         {/* Editor Pane */}
-        <div className="w-full md:w-1/2 h-1/2 md:h-full border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 flex flex-col bg-white dark:bg-[#0f1115]">
+        <div className="w-full md:w-1/2 h-1/2 md:h-full border-b md:border-b-0 md:border-r border-slate-800 flex flex-col bg-slate-900">
           <CodeEditor 
             value={content}
             onChange={handleContentChange}
@@ -476,13 +465,13 @@ export default function EditorPage() {
         </div>
         
         {/* Preview Pane */}
-        <div className="w-full md:w-1/2 h-1/2 md:h-full overflow-y-auto bg-slate-50 dark:bg-[#0a0c10]">
+        <div className="w-full md:w-1/2 h-1/2 md:h-full overflow-y-auto bg-slate-950 p-6 sm:p-10">
           <Preview content={content} format={format} />
         </div>
       </main>
 
       {/* Status Bar */}
-      <footer className="flex items-center justify-between px-4 py-1.5 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 text-xs font-medium text-slate-500 dark:text-slate-400 shrink-0 select-none">
+      <footer className="flex items-center justify-between px-4 py-1.5 bg-slate-950 border-t border-slate-800 text-xs font-medium text-slate-400 shrink-0 select-none">
         <div className="flex gap-4">
           <span>{wordCount} words</span>
           <span>{charCount} characters</span>

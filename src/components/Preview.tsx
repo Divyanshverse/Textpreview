@@ -13,7 +13,7 @@ export function Preview({ content, format }: PreviewProps) {
   if (format === 'html') {
     return (
       <div 
-        className="w-full h-full p-6 sm:p-10 prose dark:prose-invert prose-slate max-w-none"
+        className="w-full h-full prose prose-invert max-w-none prose-headings:font-semibold prose-a:text-indigo-400"
         dangerouslySetInnerHTML={{ __html: content }} 
       />
     );
@@ -21,7 +21,7 @@ export function Preview({ content, format }: PreviewProps) {
 
   // Markdown (Default)
   return (
-    <div className="w-full h-full p-6 sm:p-10 prose dark:prose-invert prose-slate max-w-none prose-pre:bg-slate-100 dark:prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-200 dark:prose-pre:border-slate-800 prose-headings:font-bold prose-a:text-brand-600 dark:prose-a:text-brand-400">
+    <div className="w-full h-full prose prose-invert max-w-none prose-pre:bg-slate-900 prose-pre:text-slate-200 prose-pre:rounded-lg prose-pre:border prose-pre:border-slate-800 prose-blockquote:border-l-2 prose-blockquote:border-indigo-500 prose-blockquote:bg-slate-900/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-headings:font-semibold prose-a:text-indigo-400 prose-code:font-mono">
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex]}

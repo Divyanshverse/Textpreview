@@ -37,16 +37,9 @@ export default function Home() {
         <div className="flex items-center gap-4">
           <button 
             onClick={handleCreate}
-            className="hidden sm:flex items-center gap-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+            className="hidden sm:flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-900 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg"
           >
             <Plus className="w-4 h-4" /> New Doc
-          </button>
-          <button 
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="p-2.5 rounded-xl transition-all text-slate-500 dark:text-slate-400 bg-[#f5f7fa] dark:bg-[#0f1115] hover:neo-light dark:hover:neo-dark neo-light-inner dark:neo-dark-inner"
-            aria-label="Toggle theme"
-          >
-            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
         </div>
       </header>

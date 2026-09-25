@@ -1,0 +1,28 @@
+{
+  "rules": {
+    "firestore": {
+      "rules": "rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /documents/{documentId} {\n      // Anyone can read a document (encryption is handled client-side or verified later)\n      allow read: if true;\n      // Anyone can create a new document\n      allow create: if true;\n      // Only allow updates if they provide the correct passkeyHash (enforced in application logic or basic rules)\n      // Since we don't have auth, we rely on the passkeyHash being sent and matching.\n      allow update: if request.resource.data.passkeyHash == resource.data.passkeyHash;\n      allow delete: if true; // Needed for burn-after-reading\n    }\n  }\n}"
+    }
+  },
+  "schema": {
+    "collections": {
+      "documents": {
+        "description": "Stores user-generated documents",
+        "fields": {
+          "id": "string",
+          "title": "string",
+          "content": "string",
+          "type": "string",
+          "createdAt": "number",
+          "views": "number",
+          "isEncrypted": "boolean",
+          "encryptedData": "string",
+          "passwordHash": "string",
+          "passkeyHash": "string",
+          "expiresAt": "number",
+          "burnAfterReading": "boolean"
+        }
+      }
+    }
+  }
+}
