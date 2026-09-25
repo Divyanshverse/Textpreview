@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ DocShowcase
+# ⚡ Text Preview
 
 ### *Instant, Frictionless Document Publishing & Sharing*
 **Architected & Engineered under the 🌌 [divyanshverse](https://github.com/divyanshverse) ecosystem**
