@@ -4,13 +4,13 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 
-export interface PreviewProps {
+export interface PreviewPaneProps {
   content: string;
   format?: 'markdown' | 'html' | 'custom';
   className?: string;
 }
 
-export function Preview({ content, format = 'markdown', className = '' }: PreviewProps) {
+export function PreviewPane({ content, format = 'markdown', className = '' }: PreviewPaneProps) {
   if (format === 'html') {
     return (
       <div className={`prose prose-slate dark:prose-invert max-w-none p-6 ${className}`}>
@@ -22,7 +22,7 @@ export function Preview({ content, format = 'markdown', className = '' }: Previe
     );
   }
 
-  // Markdown (Default)
+  // Markdown (Default) with strict math delimiter parsing: singleDollar disabled
   return (
     <div className={`prose prose-slate dark:prose-invert max-w-none p-6 ${className}`}>
       <ReactMarkdown
@@ -35,4 +35,4 @@ export function Preview({ content, format = 'markdown', className = '' }: Previe
   );
 }
 
-export default Preview;
+export default PreviewPane;
