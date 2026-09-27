@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, ArrowRight, Zap, Moon, Sun, Clock, Plus } from 'lucide-react';
+import { FileText, ArrowRight, Zap, Moon, Sun, Clock, Plus, Sparkles } from 'lucide-react';
 import { store } from '../store';
 import { Document } from '../types';
 import { format } from 'date-fns';
 import { useTheme } from '../components/ThemeProvider';
-import { SpiralAnimation } from '@/components/ui/spiral-animation';
+import { PixelFlowField } from '@/components/ui/pixel-flow-field';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -27,17 +27,30 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen flex flex-col relative text-slate-100 overflow-x-hidden selection:bg-brand-500/30 selection:text-white">
-      {/* Dynamic Cosmic Spiral Background */}
-      <div className="fixed inset-0 w-full h-full pointer-events-none z-0 overflow-hidden bg-black">
-        <SpiralAnimation />
-        {/* Subtle radial and vignette overlays for optimal contrast and readability */}
-        <div className="absolute inset-0 bg-radial from-transparent via-black/40 to-black/80" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90 backdrop-blur-[1px]" />
+    <div className="min-h-screen flex flex-col relative text-slate-100 overflow-x-hidden selection:bg-brand-500/30 selection:text-white bg-slate-950">
+      {/* Interactive Pixel Flow Field Background with 'Text Preview' */}
+      <div className="fixed inset-0 w-full h-full z-0 overflow-hidden pointer-events-none">
+        <PixelFlowField 
+          text="Text Preview" 
+          shape="square" 
+          cellSize={8}
+          gap={3}
+          speed={1.05}
+          pointerRadius={140}
+          pointerStrength={0.9}
+          colors={[
+            "rgba(80, 95, 130, 0.22)",
+            "var(--color-brand, oklch(0.72 0.2 352.53))",
+            "rgba(255, 255, 255, 0.95)"
+          ]}
+          className="w-full h-full"
+        />
+        {/* Subtle radial shading for high contrast without blocking the hover particle wake */}
+        <div className="absolute inset-0 bg-radial from-transparent via-slate-950/40 to-slate-950/85 pointer-events-none" />
       </div>
 
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-black/40 backdrop-blur-xl sticky top-0 z-20">
+      <header className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-slate-950/60 backdrop-blur-xl sticky top-0 z-20">
         <div className="flex items-center gap-2.5 font-semibold text-lg tracking-tight text-white cursor-pointer" onClick={() => navigate('/')}>
           <div className="bg-brand-500 text-white p-1.5 rounded-xl shadow-lg shadow-brand-500/30">
             <FileText className="w-5 h-5" />
@@ -63,22 +76,37 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-16 sm:py-24 flex flex-col items-center relative z-10">
-        <div className="text-center max-w-3xl mb-16 sm:mb-20 relative">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-md text-xs font-semibold text-brand-300 mb-8 transition-all hover:-translate-y-0.5 shadow-lg">
+      {/* Main Content with Optimized Spacing around the Center Text Preview Field */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-12 sm:py-20 flex flex-col items-center relative z-10">
+        <div className="text-center max-w-4xl w-full flex flex-col items-center mb-16 sm:mb-24 relative">
+          
+          {/* Top Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-md text-xs font-semibold text-brand-300 mb-6 transition-all hover:-translate-y-0.5 shadow-lg">
             <Zap className="w-3.5 h-3.5 text-yellow-300" />
             No account required • Built under divyanshverse
           </div>
 
-          <h1 className="text-5xl sm:text-7xl font-extrabold mb-8 tracking-tight text-white drop-shadow-md">
+          {/* Headline */}
+          <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-white drop-shadow-md">
             Share Documents <span className="text-transparent bg-clip-text bg-gradient-to-br from-brand-400 via-indigo-300 to-purple-400">Instantly</span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-slate-300 mb-12 max-w-2xl mx-auto leading-relaxed font-normal">
-            A minimal, professional workspace for your thoughts. Write in Markdown or HTML with live preview and mathematical typesetting.
-          </p>
+          {/* Generous Center Stage Canvas Window for the Interactive 'Text Preview' Particle Field */}
+          <div className="w-full my-8 sm:my-14 py-8 px-4 flex flex-col items-center justify-center min-h-[160px] sm:min-h-[220px]">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-xs font-medium text-slate-300 shadow-inner">
+              <Sparkles className="w-3 h-3 text-pink-400 animate-pulse" />
+              <span>Hover anywhere across the screen to disturb the interactive particle field</span>
+            </div>
+          </div>
 
+          {/* Description moved lower down for better spacing and readability */}
+          <div className="max-w-2xl mx-auto mb-10 text-center">
+            <p className="text-lg sm:text-xl text-slate-200 leading-relaxed font-normal drop-shadow-sm">
+              A minimal, professional workspace for your thoughts. Write in Markdown or HTML with live preview, mathematical typesetting, and fluid pixel flow dynamics.
+            </p>
+          </div>
+
+          {/* Action CTA Button */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button 
               onClick={handleCreate}
@@ -156,7 +184,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="py-8 border-t border-white/10 bg-black/40 backdrop-blur-md relative z-10 text-center text-sm text-slate-400">
+      <footer className="py-8 border-t border-white/10 bg-slate-950/60 backdrop-blur-md relative z-10 text-center text-sm text-slate-400">
         <p>Text Preview • Built with passion under <span className="text-white font-semibold">divyanshverse</span></p>
       </footer>
     </div>
