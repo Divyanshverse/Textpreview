@@ -107,18 +107,18 @@ async function startServer() {
       if (docData) {
         const title = docData?.title || `Document ${docId}`;
         const description = docData?.isEncrypted 
-          ? '🔒 Password protected document on DocShowcase.' 
+          ? '🔒 Password protected document on TextPreview.' 
           : (docData?.content || '').slice(0, 160).replace(/[#*`\n\r]/g, ' ').trim();
 
         const ogTags = `
-    <meta property="og:title" content="${title} - DocShowcase" />
+    <meta property="og:title" content="${title} - TextPreview" />
     <meta property="og:description" content="${description}" />
     <meta property="og:type" content="article" />
-    <meta property="og:site_name" content="DocShowcase" />
+    <meta property="og:site_name" content="TextPreview" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="${title} - DocShowcase" />
+    <meta name="twitter:title" content="${title} - TextPreview" />
     <meta name="twitter:description" content="${description}" />
-    <title>${title} - DocShowcase</title>
+    <title>${title} - TextPreview</title>
         `;
         
         template = template.replace('</head>', `${ogTags}\n  </head>`);
